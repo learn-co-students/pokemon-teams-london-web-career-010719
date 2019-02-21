@@ -45,7 +45,7 @@ function createCard(trainer) {
 }
 
 function addPokemonToCard(pokemonObj, card) {
-    console.log(pokemonObj)
+    // console.log(pokemonObj)
     const li = document.createElement("li")
     li.innerHTML = 
     `${pokemonObj.nickname} (${pokemonObj.species})`
