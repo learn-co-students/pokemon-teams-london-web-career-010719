@@ -17,7 +17,7 @@ function getTrainers() {
     .then(res => res.json())
 }
 
-function createCard(num) {
+function createCard(trainer) {
         // create div
         const div = document.createElement("div")
         div.className = "card"
@@ -37,13 +37,11 @@ function createCard(num) {
     
         main.appendChild(div)
 
-    getTrainers()
-    .then(json => {
-        document.querySelectorAll(".card")[num].dataset.id = json[num].id
-        document.querySelectorAll(".card p")[num].innerText = json[num].name
-        document.querySelectorAll(".card button")[num].dataset.trainerId = json[num].id
-        createPokemonLis(json, num)
-    })
+        div.dataset.id = trainer.id
+        p.innerText = trainer.name
+        button.dataset.trainerId = trainer.id
+        button.disabled = trainer.pokemons.length === 6 // true false
+        createPokemonLis(trainer, div)
 }
 
 function addPokemonToCard(pokemonObj, card) {
@@ -58,34 +56,20 @@ function addPokemonToCard(pokemonObj, card) {
     button.innerText = "Release"
     li.appendChild(button)
 
-    card.appendChild(li) 
+    card.querySelector('ul').appendChild(li) 
 }
 
-function createPokemonLis(json, num) {
-    
-    let pokemonArr = json[num].pokemons
-    // debugger;
-    let card = document.querySelectorAll(".card ul")[num]
-    pokemonArr.forEach(p => addPokemonToCard(p, card))
+function createPokemonLis(trainer, card) {
+    trainer.pokemons.forEach(p => addPokemonToCard(p, card))
 }
 
-// function getTrainerIndex(id) {
-//     getTrainers()
-//     .then (json => {
-//         for (let i = 0; i < Object.keys(json).length; i++) {
-//             if (json[i].id === id) { 
-//                return i
-//             }
-//         }
-//     })
-// }
 
 function makeCards() {
     getTrainers()
-    .then (json => {
-        for (let i = 0; i < Object.keys(json).length; i++) {
-            createCard(i)
-        }
+    .then (trainers => {
+        trainers.forEach(trainer => {
+            createCard(trainer)
+        })
     })
 }
 
@@ -102,18 +86,8 @@ function createPokemon(t_id) {
     // let num = getTrainerIndex(t_id);
     return fetch(POKEMONS_URL, options)
     .then(res => res.json())
-    .then(pokemon => addPokemonToCard(pokemon, document.querySelector(`[data-id="${t_id}" ul`)))
+    .then(pokemon => addPokemonToCard(pokemon, document.querySelector(`[data-id="${t_id}"]`)))
 }
-
-function addPokemon(t_id) {
-    document.querySelectorAll(".card").forEach((c)=> {
-        if (c.dataset.id === t_id) {
-            console.log(c)
-        }
-    })
-    
-}
-
 
 
 // Whenever a user hits Release Pokemon on a specific Pokemon team, that specific Pokemon should be released from the team.
@@ -135,6 +109,5 @@ document.addEventListener('click', event => {
     } else if (event.target.innerText === "Add Pokemon") {
         let t_id = event.target.parentElement.dataset.id
         createPokemon(t_id)
-
     }
 })
