@@ -42,28 +42,43 @@ function createCard(num) {
         document.querySelectorAll(".card")[num].dataset.id = json[num].id
         document.querySelectorAll(".card p")[num].innerText = json[num].name
         document.querySelectorAll(".card button")[num].dataset.trainerId = json[num].id
-        createPokemonLi(json, num)
+        createPokemonLis(json, num)
     })
-
-
 }
 
-function createPokemonLi(json, num) {
+function addPokemonToCard(pokemonObj, card) {
+    console.log(pokemonObj)
+    const li = document.createElement("li")
+    li.innerHTML = 
+    `${pokemonObj.nickname} (${pokemonObj.species})`
+
+    const button = document.createElement("button")
+    button.className = "release"
+    button.dataset.pokemonId = `${pokemonObj.id}`
+    button.innerText = "Release"
+    li.appendChild(button)
+
+    card.appendChild(li) 
+}
+
+function createPokemonLis(json, num) {
+    
     let pokemonArr = json[num].pokemons
-    for (let i=0; i < pokemonArr.length; i++) {
-        const li = document.createElement("li")
-        li.innerHTML = 
-        `${pokemonArr[i].nickname} (${pokemonArr[i].species})`
-
-        const button = document.createElement("button")
-        button.className = "release"
-        button.dataset.pokemonId = `${pokemonArr[i].id}`
-        button.innerText = "Release"
-        li.appendChild(button)
-
-        document.querySelectorAll(".card ul")[num].appendChild(li) 
-    }
+    // debugger;
+    let card = document.querySelectorAll(".card ul")[num]
+    pokemonArr.forEach(p => addPokemonToCard(p, card))
 }
+
+// function getTrainerIndex(id) {
+//     getTrainers()
+//     .then (json => {
+//         for (let i = 0; i < Object.keys(json).length; i++) {
+//             if (json[i].id === id) { 
+//                return i
+//             }
+//         }
+//     })
+// }
 
 function makeCards() {
     getTrainers()
@@ -74,13 +89,52 @@ function makeCards() {
     })
 }
 
-console.log(getTrainers().length)
-
 makeCards()
 
 
 // Whenever a user hits Add Pokemon and they have space on their team, they should get a new Pokemon.
+function createPokemon(t_id) {
+    const options = {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({"trainer_id": t_id })
+    }
+    // let num = getTrainerIndex(t_id);
+    return fetch(POKEMONS_URL, options)
+    .then(res => res.json())
+    .then(pokemon => addPokemonToCard(pokemon, document.querySelector(`[data-id="${t_id}" ul`)))
+}
+
+function addPokemon(t_id) {
+    document.querySelectorAll(".card").forEach((c)=> {
+        if (c.dataset.id === t_id) {
+            console.log(c)
+        }
+    })
+    
+}
+
 
 
 // Whenever a user hits Release Pokemon on a specific Pokemon team, that specific Pokemon should be released from the team.
 
+function releasePokemon(id) {
+    const options = {
+        method: "DELETE",
+        headers: { 'Content-Type': 'application/json' },
+    }
+    return fetch(POKEMONS_URL + "/" + id, options)
+            .then(res => res.json())
+}
+
+document.addEventListener('click', event => {
+    if (event.target.className === "release") {
+        let id = event.target.dataset.pokemonId
+        releasePokemon(id)
+        event.target.parentElement.remove();
+    } else if (event.target.innerText === "Add Pokemon") {
+        let t_id = event.target.parentElement.dataset.id
+        createPokemon(t_id)
+
+    }
+})
